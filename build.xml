@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="SwingFrameAutomation" default="test" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+  <property file="build.properties"/>
+  <property name="selenium.version" value="4.50.0"/>
+  <property name="junit.platform.version" value="1.11.4"/>
+  <property name="headless" value="false"/>
+  <property name="test.pattern" value=".*Test"/>
+  <property name="tools.dir" location=".tools"/>
+  <property name="lib.dir" location="lib"/>
+  <property name="classes.dir" location="build/classes"/>
+  <property name="reports.dir" location="build/reports"/>
+  <target name="resolve" description="Download dependency JARs using Apache Ivy">
+    <mkdir dir="${tools.dir}"/>
+    <get src="https://repo.maven.apache.org/maven2/org/apache/ivy/ivy/2.5.3/ivy-2.5.3.jar" dest="${tools.dir}/ivy.jar" skipexisting="true"/>
+    <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpath="${tools.dir}/ivy.jar"/>
+    <ivy:settings file="ivysettings.xml"/>
+    <ivy:resolve file="ivy.xml" conf="test"/>
+    <ivy:retrieve pattern="${lib.dir}/[artifact]-[revision].[ext]" conf="test" sync="true"/>
+  </target>
+  <target name="compile" depends="resolve" description="Compile Java sources and copy test resources">
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="src/main/java:src/test/java" destdir="${classes.dir}" release="17" encoding="UTF-8" includeantruntime="false">
+      <classpath><fileset dir="${lib.dir}" includes="*.jar"/></classpath>
+    </javac>
+    <copy todir="${classes.dir}"><fileset dir="src/test/resources"/></copy>
+  </target>
+  <target name="test" depends="compile" description="Run JUnit tests; use -Dheadless=true for headless Chrome">
+    <mkdir dir="${reports.dir}"/>
+    <java classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true">
+      <classpath><pathelement location="${classes.dir}"/><fileset dir="${lib.dir}" includes="*.jar"/></classpath>
+      <sysproperty key="headless" value="${headless}"/>
+      <arg value="execute"/><arg value="--scan-class-path"/>
+      <arg value="--include-classname=${test.pattern}"/>
+      <arg value="--reports-dir=${reports.dir}"/>
+      <arg value="--fail-if-no-tests"/>
+      <arg value="--details=tree"/>
+    </java>
+  </target>
+  <target name="check" description="Run configuration tests without opening a browser">
+    <antcall target="test"><param name="test.pattern" value=".*ConfigTest"/></antcall>
+  </target>
+  <target name="smoke" description="Run browser test against a local HTML fixture">
+    <antcall target="test"><param name="test.pattern" value=".*LocalSmokeTest"/></antcall>
+  </target>
+  <target name="clean" description="Delete compiled classes, reports, and screenshots"><delete dir="build"/></target>
+  <target name="package" depends="compile" description="Build desktop application JAR">
+    <jar destfile="FrameAutomationLab.jar" basedir="${classes.dir}"><manifest><attribute name="Main-Class" value="com.automation.desktop.FrameAutomationApp"/></manifest></jar>
+  </target>
+  <target name="desktop" depends="package" description="Open test selection desktop UI">
+    <java classname="com.automation.desktop.FrameAutomationApp" fork="true" failonerror="true">
+      <classpath><pathelement location="FrameAutomationLab.jar"/><fileset dir="lib" includes="*.jar"/></classpath>
+    </java>
+  </target>
+</project>

@@ -1,0 +1,6 @@
+build/
+lib/
+.tools/
+.env
+*.log
+FrameAutomationLab.jar

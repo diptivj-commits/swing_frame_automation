@@ -1,0 +1,8 @@
+<ivy-module version="2.0">
+  <info organisation="com.automation" module="selenium-ant-junit"/>
+  <configurations><conf name="test"/></configurations>
+  <dependencies>
+    <dependency org="org.seleniumhq.selenium" name="selenium-java" rev="${selenium.version}" conf="test->default"/>
+    <dependency org="org.junit.platform" name="junit-platform-console-standalone" rev="${junit.platform.version}" conf="test->default"/>
+  </dependencies>
+</ivy-module>

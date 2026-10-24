@@ -1,0 +1,3 @@
+Verified: Ant dependency resolution, Java compilation, application JAR packaging, and 3 configuration tests passed. JUnit discovery from the packaged application finds all 5 frame test methods.
+Not executed here: Swing visual interaction and Chrome browser tests (no graphical desktop or installed Chrome in the build environment).
+On Windows, launch run.bat and execute selected cases to validate browser integration.
